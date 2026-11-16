@@ -1,9 +1,27 @@
 {
   "permissions": {
     "allow": [
-      "Bash(uv run pytest:*)", "Bash(uv run ruff:*)", "Bash(uv run mypy:*)",
-      "Bash(uv add:*)", "Bash(docker compose:*)", "Bash(git add:*)", "Bash(git commit:*)"
+      "Bash(uv run pytest:*)",
+      "Bash(uv run ruff:*)",
+      "Bash(uv run mypy:*)",
+      "Bash(uv add:*)",
+      "Bash(docker compose:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git switch:*)",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)"
     ],
-    "deny": ["Read(.env)", "Read(.env.*)", "Bash(git push:*)"]
+    "deny": [
+      "Read(.env.local)",
+      "Read(.env.prod)",
+      "Read(.env.production)",
+      "Bash(git push:*)",
+      "Bash(git merge:*)",
+      "Bash(git rebase:*)",
+      "Bash(git reset --hard:*)",
+      "Bash(git checkout main:*)"
+    ]
   }
 }
