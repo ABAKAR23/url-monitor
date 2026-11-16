@@ -1,0 +1,62 @@
+x-app-env: &app-env
+  DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-url_monitor}:${POSTGRES_PASSWORD:-url_monitor}@db:5432/${POSTGRES_DB:-url_monitor}
+  REDIS_URL: redis://redis:6379/0
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-url_monitor}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-url_monitor}
+      POSTGRES_DB: ${POSTGRES_DB:-url_monitor}
+    ports:
+      - "127.0.0.1:${POSTGRES_PORT:-5433}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./docker/postgres-init.sql:/docker-entrypoint-initdb.d/10-test-db.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "127.0.0.1:6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  api:
+    build: .
+    env_file:
+      - path: .env
+        required: false
+    environment: *app-env
+    ports:
+      - "127.0.0.1:8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  worker:
+    build: .
+    command: ["arq", "app.workers.settings.WorkerSettings"]
+    env_file:
+      - path: .env
+        required: false
+    environment: *app-env
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    profiles: ["worker"]
+
+volumes:
+  pgdata:

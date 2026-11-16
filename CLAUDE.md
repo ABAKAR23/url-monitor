@@ -57,6 +57,7 @@ tests/
 - Une session DB par requête (dépendance FastAPI) et **une session par tâche** dans le worker.
 - Aucun appel bloquant dans du code async (`requests`, `time.sleep`, I/O fichier synchrone).
 - Pas de commentaires évidents ; docstring seulement si le "pourquoi" n'est pas lisible.
+- Toute création/modification de fichier passe par les outils Write/Edit, jamais par le shell (`sed`, heredoc, `echo`, `cat >`…).
 
 ## API
 
