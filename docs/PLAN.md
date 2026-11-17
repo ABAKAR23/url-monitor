@@ -38,6 +38,19 @@
   401, email inconnu 401, `/me` avec token, sans token, token expiré.
 - Commit : `feat: add jwt authentication`
 
+## Étape 6 — CRUD `/urls` (branche `feat/urls-crud`)
+
+- `GET/POST /urls`, `GET/PATCH/DELETE /urls/{id}`, scopés par utilisateur
+  (404 `URL_NOT_FOUND` si non propriétaire).
+- `interval_minutes` par défaut 5 ; pagination `limit` 20 par défaut, max 100.
+- SSRF en deux temps : à la création, http/https uniquement, refus de
+  `localhost` et des IP littérales non publiques (`core/ssrf.py`) ;
+  la résolution DNS complète reste au worker.
+- URL normalisée avant stockage (host minuscule, slash final retiré).
+- Doublon : `IntegrityError` → 409 `URL_ALREADY_EXISTS` (pas de SELECT préalable).
+- Limite `MAX_URLS_PER_USER` → 409 `URL_LIMIT_REACHED`.
+- Commit : `feat: add user-scoped urls crud`
+
 ## Rappels
 
 - Fichiers uniquement via Write/Edit, jamais via bash. Pas de `rm`.
