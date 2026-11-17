@@ -1,9 +1,12 @@
 from collections.abc import AsyncIterator
 
 import pytest
+from httpx import ASGITransport, AsyncClient
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, create_async_engine
 
+from app.core.db import get_session
+from app.main import app
 from app.models import Base
 
 
@@ -35,3 +38,15 @@ async def db_session(engine: AsyncEngine) -> AsyncIterator[AsyncSession]:
         yield session
         await session.close()
         await trans.rollback()
+
+
+@pytest.fixture
+async def client(db_session: AsyncSession) -> AsyncIterator[AsyncClient]:
+    async def override_get_session() -> AsyncSession:
+        return db_session
+
+    app.dependency_overrides[get_session] = override_get_session
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        yield client
+    app.dependency_overrides.clear()
